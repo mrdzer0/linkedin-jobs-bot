@@ -1,5 +1,7 @@
 # linkedin-jobs-bot
 
+** Update flagging --location
+
 To install dependencies:
 
 ```bash
@@ -10,7 +12,6 @@ To run:
 
 ```bash
 bun run index.js
-bun run index.js --location="DE"
 ```
 
 This project was created using `bun init` in bun v1.1.18. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
