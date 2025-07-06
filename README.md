@@ -10,6 +10,8 @@ To run:
 
 ```bash
 bun run index.js
+
+#Add custom flagging --location
 bun run index.js --location="DE"
 ```
 

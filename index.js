@@ -1,3 +1,5 @@
+import webhookMap from './webhook.json' assert { type: 'json' }
+
 const jsdom = require('jsdom')
 const { JSDOM } = jsdom
 
@@ -5,6 +7,19 @@ const file = Bun.file('log.txt')
 const log = await file.text()
 const w = file.writer()
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+const args = process.argv.slice(2)
+const LOCATION = getArg('location', 'Indonesia')
+
+function getWebhook(location) {
+  const key = location.toLowerCase().replace(/\s+/g, '')
+  return webhookMap[key]
+}
+
+function getArg(flag, defaultValue) {
+  const arg = args.find(arg => arg.startsWith(`--${flag}=`))
+  return arg ? arg.split('=')[1] : defaultValue
+}
 
 function getValue(dom, selector, nodeType) {
   if (!nodeType) nodeType = 'textContent';
@@ -23,7 +38,7 @@ function getValue(dom, selector, nodeType) {
 }
 
 async function getJobs(keywords) {
-  const dom = await JSDOM.fromURL(`https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodeURI(keywords)}&location=Indonesia`)
+  const dom = await JSDOM.fromURL(`https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodeURI(keywords)}&location=${encodeURIComponent(LOCATION)}`)
   const { document } = dom.window
   const selector = 'body > li > div.base-card'
   const jobs = []
@@ -92,7 +107,13 @@ async function post(data) {
   }
 
   const payload = genPayload(data)
-  const post = await fetch(Bun.env.DISCORD_WEBHOOK_URL, {
+  const webhook = getWebhook(LOCATION)
+  if (!webhook) {
+    console.warn(`⚠️ No webhook found for location: ${LOCATION}`)
+    return
+  }
+
+  const post = await fetch(webhook, {
     method: 'POST',
     body: JSON.stringify(payload),
     headers: { 'Content-Type': 'application/json' },
